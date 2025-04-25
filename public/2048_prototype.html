@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048未来版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5b21b6;
+            --primary-dark: #4c1d95;
+            --primary-light: #8b5cf6;
+            --secondary: #0ea5e9;
+            --accent: #f43f5e;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.1) 0, transparent 40%),
+                radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.1) 0, transparent 40%),
+                radial-gradient(at 50% 100%, rgba(244, 63, 94, 0.1) 0, transparent 40%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-dark {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.02);
+        }
+
+        .card-dark {
+            background: #1e293b;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .tile {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .tile::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(to bottom right,
+                    rgba(255, 255, 255, 0.25),
+                    rgba(255, 255, 255, 0.05));
+            transform: rotate(-45deg);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .tile-2 {
+            background-color: #ddd6fe;
+            color: #5b21b6;
+        }
+
+        .tile-4 {
+            background-color: #c4b5fd;
+            color: #5b21b6;
+        }
+
+        .tile-8 {
+            background-color: #a78bfa;
+            color: white;
+        }
+
+        .tile-16 {
+            background-color: #8b5cf6;
+            color: white;
+        }
+
+        .tile-32 {
+            background-color: #7c3aed;
+            color: white;
+        }
+
+        .tile-64 {
+            background-color: #6d28d9;
+            color: white;
+        }
+
+        .tile-128 {
+            background-color: #38bdf8;
+            color: white;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+        }
+
+        .tile-256 {
+            background-color: #0ea5e9;
+            color: white;
+            box-shadow: 0 0 12px rgba(14, 165, 233, 0.4);
+        }
+
+        .tile-512 {
+            background-color: #06b6d4;
+            color: white;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
+        }
+
+        .tile-1024 {
+            background-color: #f43f5e;
+            color: white;
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
+        }
+
+        .tile-2048 {
+            background-color: #e11d48;
+            color: white;
+            box-shadow: 0 0 15px rgba(225, 29, 72, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 12px rgba(225, 29, 72, 0.6);
+            }
+
+            50% {
+                box-shadow: 0 0 20px rgba(225, 29, 72, 0.8);
+            }
+
+            100% {
+                box-shadow: 0 0 12px rgba(225, 29, 72, 0.6);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s forwards;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300px;
+            height: 300px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s;
+        }
+
+        .btn-primary:active::after {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0;
+        }
+
+        .gradient-text {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(to right, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .bg-grid {
+            background-size: 20px 20px;
+            background-image:
+                linear-gradient(to right, rgba(124, 58, 237, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(124, 58, 237, 0.05) 1px, transparent 1px);
+        }
+
+        .empty-tile {
+            background-color: rgba(226, 232, 240, 0.5);
+            border: 1px solid rgba(203, 213, 225, 0.3);
+        }
+
+        .empty-tile-dark {
+            background-color: rgba(51, 65, 85, 0.5);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+        }
+    </style>
+</head>
+
+<body class="text-gray-900">
+    <div class="flex flex-col items-center p-4 max-w-md mx-auto">
+        <h1 class="text-2xl font-bold mb-8 mt-4 text-center gradient-text">
+            2048未来版 - 设计原型</h1>
+
+        <!-- 欢迎页面 -->
+        <div class="card shadow-lg p-6 w-full mb-8">
+            <h2 class="text-xl font-bold mb-2 text-indigo-600">1. 欢迎页面</h2>
+            <div class="rounded-xl overflow-hidden w-[375px] mx-auto">
+                <div class="card bg-white p-8 min-h-[667px] relative overflow-hidden bg-grid">
+                    <!-- 背景动效元素 -->
+                    <div
+                        class="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-3xl">
+                    </div>
+                    <div
+                        class="absolute -bottom-20 -left-20 w-40 h-40 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-500/20 blur-3xl">
+                    </div>
+
+                    <div class="flex flex-col items-center justify-center h-full relative z-10">
+                        <div class="relative mb-2">
+                            <div
+                                class="absolute -inset-1 rounded-lg blur bg-gradient-to-r from-indigo-500 via-secondary to-accent opacity-20">
+                            </div>
+                            <h1
+                                class="relative text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-secondary to-accent mb-1">
+                                2048</h1>
+                        </div>
+                        <p class="text-gray-600 mb-10 text-center">滑动方块，合并相同数字，挑战2048！</p>
+
+                        <button class="btn-primary py-3 px-8 rounded-full mb-6 shadow-md font-bold text-lg">
+                            开始游戏
+                        </button>
+
+                        <div class="grid grid-cols-2 gap-4 mt-2 w-full max-w-xs">
+                            <button
+                                class="bg-white shadow-md text-indigo-600 py-3 px-4 rounded-xl flex items-center justify-center border border-gray-100 hover:bg-indigo-50 transition">
+                                <i class="fas fa-trophy mr-2 text-yellow-500"></i> 排行榜
+                            </button>
+                            <button
+                                class="bg-white shadow-md text-indigo-600 py-3 px-4 rounded-xl flex items-center justify-center border border-gray-100 hover:bg-indigo-50 transition">
+                                <i class="fas fa-cog mr-2 text-gray-500"></i> 设置
+                            </button>
+                            <button
+                                class="bg-white shadow-md text-indigo-600 py-3 px-4 rounded-xl flex items-center justify-center border border-gray-100 hover:bg-indigo-50 transition">
+                                <i class="fas fa-question-circle mr-2 text-blue-500"></i> 游戏规则
+                            </button>
+                            <button
+                                class="bg-white shadow-md text-indigo-600 py-3 px-4 rounded-xl flex items-center justify-center border border-gray-100 hover:bg-indigo-50 transition">
+                                <i class="fas fa-share-alt mr-2 text-green-500"></i> 分享
+                            </button>
+                        </div>
+
+                        <div
+                            class="absolute bottom-8 flex items-center bg-indigo-50 rounded-full py-2 px-4 mt-8 shadow">
+                            <i class="fas fa-medal text-yellow-500 mr-2"></i>
+                            <span class="text-gray-700">最高分: <span class="font-bold text-indigo-600">24578</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 游戏主界面 -->
+        <div class="card shadow-lg p-6 w-full mb-8">
+            <h2 class="text-xl font-bold mb-2 text-indigo-600">2. 游戏主界面</h2>
+            <div class="rounded-xl overflow-hidden w-[375px] mx-auto">
+                <div class="card bg-white p-4 min-h-[667px] relative">
+                    <!-- 背景效果 -->
+                    <div class="absolute top-0 right-0 w-32 h-32 rounded-full bg-indigo-500/5 blur-2xl"></div>
+                    <div class="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-cyan-500/5 blur-2xl"></div>
+
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-center mb-4">
+                            <div
+                                class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-secondary to-accent">
+                                2048</div>
+                            <div class="flex gap-2">
+                                <div
+                                    class="bg-white shadow p-2 rounded-lg flex flex-col items-center w-20 border border-gray-100">
+                                    <span class="text-xs text-gray-500">分数</span>
+                                    <span class="font-bold text-indigo-600">1204</span>
+                                </div>
+                                <div
+                                    class="bg-white shadow p-2 rounded-lg flex flex-col items-center w-20 border border-gray-100">
+                                    <span class="text-xs text-gray-500">最佳</span>
+                                    <span class="font-bold text-indigo-600">24576</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between mb-6">
+                            <button class="btn-primary py-2 px-4 rounded-lg flex items-center">
+                                <i class="fas fa-redo-alt mr-2"></i> 新游戏
+                            </button>
+                            <div class="flex gap-2">
+                                <button
+                                    class="bg-white shadow p-2 rounded-lg text-gray-500 border border-gray-100 hover:bg-indigo-50 transition">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                                <button
+                                    class="bg-white shadow p-2 rounded-lg text-gray-500 border border-gray-100 hover:bg-indigo-50 transition">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-inner">
+                            <div class="grid grid-cols-4 gap-3">
+                                <div
+                                    class="tile tile-2 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    2</div>
+                                <div
+                                    class="tile tile-4 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    4</div>
+                                <div class="empty-tile h-16 rounded-md flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-full bg-gray-200"></div>
+                                </div>
+                                <div class="empty-tile h-16 rounded-md flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-full bg-gray-200"></div>
+                                </div>
+
+                                <div class="empty-tile h-16 rounded-md flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-full bg-gray-200"></div>
+                                </div>
+                                <div
+                                    class="tile tile-2 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    2</div>
+                                <div class="empty-tile h-16 rounded-md flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-full bg-gray-200"></div>
+                                </div>
+                                <div class="empty-tile h-16 rounded-md flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-full bg-gray-200"></div>
+                                </div>
+
+                                <div class="empty-tile h-16 rounded-md flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-full bg-gray-200"></div>
+                                </div>
+                                <div class="empty-tile h-16 rounded-md flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-full bg-gray-200"></div>
+                                </div>
+                                <div
+                                    class="tile tile-8 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    8</div>
+                                <div class="empty-tile h-16 rounded-md flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-full bg-gray-200"></div>
+                                </div>
+
+                                <div class="empty-tile h-16 rounded-md flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-full bg-gray-200"></div>
+                                </div>
+                                <div
+                                    class="tile tile-4 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    4</div>
+                                <div
+                                    class="tile tile-16 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    16</div>
+                                <div
+                                    class="tile tile-32 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    32</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex justify-center">
+                            <div
+                                class="bg-indigo-50 py-3 px-6 rounded-full text-center text-gray-600 text-sm border border-indigo-100 shadow">
+                                <i class="fas fa-arrows-alt mr-2 text-indigo-500"></i>
+                                上下左右滑动或使用方向键
+                            </div>
+                        </div>
+
+                        <!-- 游戏提示 -->
+                        <div class="mt-6 bg-white shadow rounded-lg p-3 text-sm border border-gray-100">
+                            <div class="flex items-center mb-1">
+                                <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                                <span class="text-gray-700 font-medium">游戏提示</span>
+                            </div>
+                            <p class="text-gray-600 text-xs">将大数字保持在角落位置，按照从大到小的顺序排列方块可以获得更高的分数。</p>
+                        </div>
+
+                        <!-- 成就系统预览 -->
+                        <div class="absolute bottom-3 right-3">
+                            <button
+                                class="bg-white shadow-lg rounded-full h-12 w-12 flex items-center justify-center text-accent border border-accent/20 hover:bg-accent/5 transition">
+                                <i class="fas fa-award"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 游戏胜利界面 -->
+        <div class="card shadow-lg p-6 w-full mb-8">
+            <h2 class="text-xl font-bold mb-2 text-indigo-600">3. 游戏胜利界面</h2>
+            <div class="rounded-xl overflow-hidden w-[375px] mx-auto">
+                <div class="card bg-white p-4 min-h-[667px] relative">
+                    <!-- 背景（模糊） -->
+                    <div class="opacity-40">
+                        <div class="flex justify-between items-center mb-4">
+                            <div
+                                class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-secondary to-accent">
+                                2048</div>
+                            <div class="flex gap-2">
+                                <div
+                                    class="bg-white shadow p-2 rounded-lg flex flex-col items-center w-20 border border-gray-100">
+                                    <span class="text-xs text-gray-500">分数</span>
+                                    <span class="font-bold text-indigo-600">24576</span>
+                                </div>
+                                <div
+                                    class="bg-white shadow p-2 rounded-lg flex flex-col items-center w-20 border border-gray-100">
+                                    <span class="text-xs text-gray-500">最佳</span>
+                                    <span class="font-bold text-indigo-600">24576</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-inner mt-4">
+                            <div class="grid grid-cols-4 gap-3">
+                                <!-- 几个示例格子 -->
+                                <div class="empty-tile h-16 rounded-md"></div>
+                                <div class="empty-tile h-16 rounded-md"></div>
+                                <div class="empty-tile h-16 rounded-md"></div>
+                                <div class="empty-tile h-16 rounded-md"></div>
+
+                                <div class="empty-tile h-16 rounded-md"></div>
+                                <div class="empty-tile h-16 rounded-md"></div>
+                                <div class="empty-tile h-16 rounded-md"></div>
+                                <div class="empty-tile h-16 rounded-md"></div>
+
+                                <div class="empty-tile h-16 rounded-md"></div>
+                                <div class="empty-tile h-16 rounded-md"></div>
+                                <div
+                                    class="tile tile-1024 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    1024</div>
+                                <div class="empty-tile h-16 rounded-md"></div>
+
+                                <div class="empty-tile h-16 rounded-md"></div>
+                                <div class="empty-tile h-16 rounded-md"></div>
+                                <div class="empty-tile h-16 rounded-md"></div>
+                                <div
+                                    class="tile tile-2048 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    2048</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 胜利弹窗 -->
+                    <div class="absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%] w-[350px]">
+                        <div class="relative">
+                            <!-- 闪光背景效果 -->
+                            <div
+                                class="absolute inset-0 blur-xl bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-600 opacity-20 rounded-2xl">
+                            </div>
+                            <!-- 主卡片内容 -->
+                            <div
+                                class="modal bg-white p-8 rounded-2xl border border-yellow-200 relative z-10 shadow-2xl">
+                                <div class="relative mb-4">
+                                    <div
+                                        class="absolute inset-0 bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-600 blur rounded-full opacity-30">
+                                    </div>
+                                    <div class="text-6xl relative">🏆</div>
+                                </div>
+                                <h3
+                                    class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-600 mb-4">
+                                    恭喜你赢了！</h3>
+                                <p class="mb-6 text-gray-700">你成功合成了<span class="text-yellow-500 font-bold"> 2048
+                                    </span>，得分：<span class="font-bold text-yellow-500">24576</span></p>
+
+                                <div class="flex flex-col gap-3">
+                                    <button
+                                        class="btn-primary bg-gradient-to-r from-amber-500 to-yellow-500 py-3 px-4 rounded-lg w-full font-bold">
+                                        继续挑战更高分
+                                    </button>
+                                    <button
+                                        class="bg-white border border-gray-200 text-gray-700 py-3 px-4 rounded-lg w-full hover:bg-gray-50 transition">
+                                        重新开始
+                                    </button>
+                                    <button
+                                        class="bg-white border border-gray-200 text-gray-700 py-3 px-4 rounded-lg w-full flex items-center justify-center hover:bg-gray-50 transition">
+                                        <i class="fas fa-share-alt mr-2 text-blue-500"></i> 分享成绩
+                                    </button>
+                                </div>
+
+                                <!-- 游戏成就标识 -->
+                                <div class="flex justify-center mt-5 gap-2">
+                                    <div
+                                        class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-green-600 text-white text-xs shadow-md">
+                                        <i class="fas fa-bolt"></i>
+                                    </div>
+                                    <div
+                                        class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-600 text-white text-xs shadow-md">
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <div
+                                        class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-indigo-600 text-white text-xs shadow-md">
+                                        <i class="fas fa-trophy"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 游戏结束界面 -->
+        <div class="card shadow-lg p-6 w-full mb-8">
+            <h2 class="text-xl font-bold mb-2 text-indigo-600">4. 游戏结束界面</h2>
+            <div class="rounded-xl overflow-hidden w-[375px] mx-auto">
+                <div class="card bg-white p-4 min-h-[667px] relative">
+                    <!-- 背景（模糊） -->
+                    <div class="opacity-40">
+                        <div class="flex justify-between items-center mb-4">
+                            <div
+                                class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-secondary to-accent">
+                                2048</div>
+                            <div class="flex gap-2">
+                                <div
+                                    class="bg-white shadow p-2 rounded-lg flex flex-col items-center w-20 border border-gray-100">
+                                    <span class="text-xs text-gray-500">分数</span>
+                                    <span class="font-bold text-indigo-600">1024</span>
+                                </div>
+                                <div
+                                    class="bg-white shadow p-2 rounded-lg flex flex-col items-center w-20 border border-gray-100">
+                                    <span class="text-xs text-gray-500">最佳</span>
+                                    <span class="font-bold text-indigo-600">24576</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-inner mt-4">
+                            <div class="grid grid-cols-4 gap-3">
+                                <!-- 满格的游戏结束状态 -->
+                                <div
+                                    class="tile tile-2 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    2</div>
+                                <div
+                                    class="tile tile-4 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    4</div>
+                                <div
+                                    class="tile tile-8 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    8</div>
+                                <div
+                                    class="tile tile-16 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    16</div>
+
+                                <div
+                                    class="tile tile-32 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    32</div>
+                                <div
+                                    class="tile tile-16 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    16</div>
+                                <div
+                                    class="tile tile-8 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    8</div>
+                                <div
+                                    class="tile tile-4 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    4</div>
+
+                                <div
+                                    class="tile tile-8 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    8</div>
+                                <div
+                                    class="tile tile-4 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    4</div>
+                                <div
+                                    class="tile tile-2 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    2</div>
+                                <div
+                                    class="tile tile-32 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    32</div>
+
+                                <div
+                                    class="tile tile-16 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    16</div>
+                                <div
+                                    class="tile tile-64 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    64</div>
+                                <div
+                                    class="tile tile-128 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    128</div>
+                                <div
+                                    class="tile tile-256 h-16 flex items-center justify-center rounded-md font-bold text-xl">
+                                    256</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 游戏结束弹窗 -->
+                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[320px]">
+                        <div class="relative">
+                            <!-- 暗色背景效果 -->
+                            <div class="absolute inset-0 blur-xl bg-slate-500 opacity-10 rounded-2xl"></div>
+                            <!-- 主卡片内容 -->
+                            <div class="modal bg-white p-8 rounded-2xl border border-gray-200 relative z-10 shadow-2xl">
+                                <div class="relative mb-4">
+                                    <div
+                                        class="absolute inset-0 bg-gradient-to-r from-slate-400 to-slate-500 blur rounded-full opacity-20">
+                                    </div>
+                                    <div class="text-6xl relative">🔄</div>
+                                </div>
+                                <h3 class="text-2xl font-bold text-gray-700 mb-4">游戏结束</h3>
+                                <p class="mb-6 text-gray-600">本局得分：<span class="font-bold text-indigo-600">1024</span>
+                                </p>
+
+                                <div class="flex flex-col gap-3">
+                                    <button class="btn-primary py-3 px-4 rounded-lg w-full font-bold">
+                                        再玩一局
+                                    </button>
+                                    <button
+                                        class="bg-white border border-gray-200 text-gray-700 py-3 px-4 rounded-lg w-full flex items-center justify-center hover:bg-gray-50 transition">
+                                        <i class="fas fa-chart-line mr-2 text-indigo-500"></i> 查看统计
+                                    </button>
+                                </div>
+
+                                <!-- 游戏提示 -->
+                                <div class="mt-5 bg-gray-50 rounded-lg p-3 text-sm border border-gray-200">
+                                    <div class="flex items-center text-gray-700 mb-1">
+                                        <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                                        <span>游戏提示</span>
+                                    </div>
+                                    <p class="text-gray-600 text-xs">尝试保持大数字在角落，并按照从大到小的顺序排列方块。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设置界面 -->
+        <div class="card shadow-lg p-6 w-full mb-8">
+            <h2 class="text-xl font-bold mb-2 text-indigo-600">5. 设置界面</h2>
+            <div class="rounded-xl overflow-hidden w-[375px] mx-auto">
+                <div class="card bg-white p-4 min-h-[667px] relative">
+                    <!-- 顶部导航栏 -->
+                    <div class="flex justify-between items-center mb-8">
+                        <div
+                            class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-secondary to-accent">
+                            2048</div>
+                        <button
+                            class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 shadow-sm">
+                            <i class="fas fa-times text-gray-700"></i>
+                        </button>
+                    </div>
+
+                    <!-- 设置内容 -->
+                    <div class="pb-6">
+                        <h2 class="text-2xl font-bold text-gray-700 mb-6">设置</h2>
+
+                        <!-- 主题设置 -->
+                        <div class="mb-8">
+                            <h3 class="font-bold text-gray-700 mb-4">主题选择</h3>
+                            <div class="grid grid-cols-4 gap-3">
+                                <div class="theme-option relative">
+                                    <div
+                                        class="w-16 h-16 rounded-lg bg-gradient-to-br from-indigo-50 to-indigo-200 border-2 border-indigo-500 p-1 shadow-md">
+                                        <div class="w-full h-full rounded-md bg-white flex items-center justify-center">
+                                            <div
+                                                class="w-2/3 h-2/3 rounded-sm bg-gradient-to-br from-indigo-500 to-indigo-700">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="absolute -top-1 -right-1 w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center shadow">
+                                        <i class="fas fa-check text-white text-xs"></i>
+                                    </div>
+                                    <div class="text-xs text-center mt-1 text-gray-700">默认</div>
+                                </div>
+
+                                <div class="theme-option">
+                                    <div
+                                        class="w-16 h-16 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-200 border border-gray-200 p-1 shadow-sm">
+                                        <div class="w-full h-full rounded-md bg-white flex items-center justify-center">
+                                            <div
+                                                class="w-2/3 h-2/3 rounded-sm bg-gradient-to-br from-emerald-500 to-emerald-700">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-center mt-1 text-gray-700">翠绿</div>
+                                </div>
+
+                                <div class="theme-option">
+                                    <div
+                                        class="w-16 h-16 rounded-lg bg-gradient-to-br from-amber-50 to-amber-200 border border-gray-200 p-1 shadow-sm">
+                                        <div class="w-full h-full rounded-md bg-white flex items-center justify-center">
+                                            <div
+                                                class="w-2/3 h-2/3 rounded-sm bg-gradient-to-br from-amber-500 to-amber-700">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-center mt-1 text-gray-700">日落</div>
+                                </div>
+
+                                <div class="theme-option">
+                                    <div
+                                        class="w-16 h-16 rounded-lg bg-gradient-to-br from-rose-50 to-rose-200 border border-gray-200 p-1 shadow-sm">
+                                        <div class="w-full h-full rounded-md bg-white flex items-center justify-center">
+                                            <div
+                                                class="w-2/3 h-2/3 rounded-sm bg-gradient-to-br from-rose-500 to-rose-700">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-center mt-1 text-gray-700">粉红</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 声音设置 -->
+                        <div class="mb-8">
+                            <h3 class="font-bold text-gray-700 mb-4">声音设置</h3>
+
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-volume-up text-indigo-500 mr-3"></i>
+                                    <span class="text-gray-700">游戏音效</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider round bg-indigo-600"></span>
+                                </label>
+                            </div>
+
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-music text-indigo-500 mr-3"></i>
+                                    <span class="text-gray-700">背景音乐</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider round bg-indigo-600"></span>
+                                </label>
+                            </div>
+
+                            <div class="mt-6">
+                                <label class="text-sm text-gray-700 mb-2 block">音量</label>
+                                <input type="range" min="0" max="100" value="80"
+                                    class="slider-range w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                    <span>0</span>
+                                    <span>50</span>
+                                    <span>100</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 游戏难度 -->
+                        <div class="mb-8">
+                            <h3 class="font-bold text-gray-700 mb-4">游戏难度</h3>
+                            <div class="grid grid-cols-3 gap-3">
+                                <button
+                                    class="py-2 px-4 bg-white border border-gray-200 rounded-lg text-gray-700 shadow-sm text-sm hover:bg-gray-50 transition">简单</button>
+                                <button
+                                    class="py-2 px-4 bg-indigo-600 border border-indigo-700 rounded-lg text-white shadow-sm text-sm font-medium">
+                                    标准
+                                </button>
+                                <button
+                                    class="py-2 px-4 bg-white border border-gray-200 rounded-lg text-gray-700 shadow-sm text-sm hover:bg-gray-50 transition">挑战</button>
+                            </div>
+                        </div>
+
+                        <!-- 其他设置 -->
+                        <div class="mb-8">
+                            <h3 class="font-bold text-gray-700 mb-4">其他设置</h3>
+
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-bell text-indigo-500 mr-3"></i>
+                                    <span class="text-gray-700">通知提醒</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider round bg-indigo-600"></span>
+                                </label>
+                            </div>
+
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-cloud-upload-alt text-indigo-500 mr-3"></i>
+                                    <span class="text-gray-700">自动同步记录</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox">
+                                    <span class="slider round bg-indigo-600"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 底部按钮 -->
+                        <div class="flex gap-3 mt-8">
+                            <button
+                                class="py-3 w-full bg-white border border-gray-200 rounded-lg text-gray-700 text-sm hover:bg-gray-50 transition">
+                                恢复默认
+                            </button>
+                            <button class="py-3 w-full bg-indigo-600 rounded-lg text-white text-sm font-medium">
+                                保存设置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 游戏规则界面 -->
+        <div class="card shadow-lg p-6 w-full mb-8">
+            <h2 class="text-xl font-bold mb-2 text-indigo-600">6. 游戏规则界面</h2>
+            <div class="rounded-xl overflow-hidden w-[375px] mx-auto">
+                <div class="card bg-white p-4 min-h-[667px] relative">
+                    <!-- 顶部导航栏 -->
+                    <div class="flex justify-between items-center mb-6">
+                        <div
+                            class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-secondary to-accent">
+                            2048</div>
+                        <button
+                            class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 shadow-sm">
+                            <i class="fas fa-times text-gray-700"></i>
+                        </button>
+                    </div>
+
+                    <!-- 内容 -->
+                    <div class="pb-6">
+                        <h2 class="text-2xl font-bold text-gray-700 mb-4">游戏规则</h2>
+
+                        <!-- 图解部分 -->
+                        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                            <h3 class="font-bold text-gray-700 mb-3">基本玩法</h3>
+
+                            <div class="flex items-center mb-4">
+                                <div class="flex-shrink-0">
+                                    <div
+                                        class="w-12 h-12 bg-white rounded-lg shadow-sm flex items-center justify-center border border-gray-100">
+                                        <div class="text-indigo-600">
+                                            <i class="fas fa-arrows-alt text-lg"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-gray-700">滑动手指以任意方向移动所有数字方块</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center mb-4">
+                                <div class="flex-shrink-0">
+                                    <div
+                                        class="w-12 h-12 bg-white rounded-lg shadow-sm flex items-center justify-center border border-gray-100">
+                                        <div class="text-indigo-600">
+                                            <i class="fas fa-cubes text-lg"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-gray-700">相同数字的方块相撞时会合并成为它们的和</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div
+                                        class="w-12 h-12 bg-white rounded-lg shadow-sm flex items-center justify-center border border-gray-100">
+                                        <div class="text-indigo-600">
+                                            <i class="fas fa-trophy text-lg"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-gray-700">将数字合并至2048即可获胜</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 示例部分 -->
+                        <div class="mb-6">
+                            <h3 class="font-bold text-gray-700 mb-3">示例</h3>
+
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex justify-center mb-3">
+                                    <div class="grid grid-cols-4 gap-2 w-full max-w-[250px]">
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-amber-100 flex items-center justify-center font-bold text-amber-700 border border-amber-200">
+                                            2</div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-amber-100 flex items-center justify-center font-bold text-amber-700 border border-amber-200">
+                                            2</div>
+                                        <div
+                                            class="aspect-square rounded bg-amber-100 flex items-center justify-center font-bold text-amber-700 border border-amber-200">
+                                            2</div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-orange-100 flex items-center justify-center font-bold text-orange-700 border border-orange-200">
+                                            4</div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-center items-center mb-2">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
+                                        <i class="fas fa-arrow-down"></i>
+                                    </div>
+                                </div>
+
+                                <p class="text-center text-gray-700 text-sm mb-3">向右滑动后</p>
+
+                                <div class="flex justify-center">
+                                    <div class="grid grid-cols-4 gap-2 w-full max-w-[250px]">
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-amber-100 flex items-center justify-center font-bold text-amber-700 border border-amber-200">
+                                            2</div>
+
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-orange-100 flex items-center justify-center font-bold text-orange-700 border border-orange-200">
+                                            4</div>
+
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        </div>
+                                        <div
+                                            class="aspect-square rounded bg-orange-100 flex items-center justify-center font-bold text-orange-700 border border-orange-200">
+                                            4</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 技巧部分 -->
+                        <div class="mb-6">
+                            <h3 class="font-bold text-gray-700 mb-3">游戏技巧</h3>
+
+                            <div class="bg-gray-50 rounded-lg p-4 mb-3">
+                                <div class="flex items-center">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-3 flex-shrink-0">
+                                        <span class="font-medium">1</span>
+                                    </div>
+                                    <p class="text-gray-700">尽量保持大数字在角落位置</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-lg p-4 mb-3">
+                                <div class="flex items-center">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-3 flex-shrink-0">
+                                        <span class="font-medium">2</span>
+                                    </div>
+                                    <p class="text-gray-700">尝试保持数字按顺序排列，以便更容易合并</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-3 flex-shrink-0">
+                                        <span class="font-medium">3</span>
+                                    </div>
+                                    <p class="text-gray-700">避免随意滑动，每一步都要思考后果</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 返回按钮 -->
+                        <button class="w-full py-3 bg-indigo-600 rounded-lg text-white text-sm font-medium mt-4">
+                            返回游戏
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 排行榜界面 -->
+        <div class="bg-dark/80 glass rounded-xl shadow-lg p-6 w-full mb-8">
+            <h2 class="text-xl font-bold mb-2 text-indigo-300">7. 排行榜界面</h2>
+            <div class="rounded-xl overflow-hidden w-[375px] mx-auto">
+                <div class="bg-dark glass p-4 min-h-[667px] relative">
+                    <!-- 背景光效 -->
+                    <div class="absolute top-0 right-0 w-32 h-32 rounded-full bg-indigo-500/10 blur-2xl"></div>
+                    <div class="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-cyan-500/10 blur-2xl"></div>
+
+                    <div class="relative z-10">
+                        <div class="flex items-center mb-6">
+                            <button class="glass p-2 rounded-lg mr-4 text-gray-300">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <h3
+                                class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-secondary to-accent">
+                                排行榜</h3>
+                        </div>
+
+                        <div class="glass rounded-lg p-5 mb-4 border border-white/10">
+                            <div class="flex justify-between mb-5">
+                                <button
+                                    class="bg-indigo-500 text-white py-1.5 px-4 rounded-full text-sm font-medium">全球</button>
+                                <button class="glass text-gray-300 py-1.5 px-4 rounded-full text-sm">好友</button>
+                                <button class="glass text-gray-300 py-1.5 px-4 rounded-full text-sm">本周</button>
+                                <button class="glass text-gray-300 py-1.5 px-4 rounded-full text-sm">历史</button>
+                            </div>
+
+                            <!-- 第一名 -->
+                            <div class="relative mb-5">
+                                <div
+                                    class="absolute -inset-1 rounded-lg blur-md bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-600 opacity-20">
+                                </div>
+                                <div
+                                    class="relative glass border border-yellow-500/30 rounded-lg p-4 flex items-center">
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center text-white font-bold mr-3 shadow-lg">
+                                        1
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="font-bold text-white flex items-center">
+                                            玩家一
+                                            <div class="ml-2 flex">
+                                                <div
+                                                    class="w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-400 text-xs">
+                                                    <i class="fas fa-crown"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-sm text-gray-400 flex items-center">
+                                            <span class="mr-2">最高方块:</span>
+                                            <div class="tile-4096 text-xs px-2 py-0.5 rounded font-medium">4096</div>
+                                        </div>
+                                    </div>
+                                    <div class="font-bold text-yellow-400 text-xl">46,208</div>
+                                </div>
+                            </div>
+
+                            <!-- 第二名 -->
+                            <div class="glass border border-gray-500/30 rounded-lg p-4 flex items-center mb-2">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white font-bold mr-3 shadow-md">
+                                    2
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-bold text-gray-200">玩家二</div>
+                                    <div class="text-sm text-gray-400 flex items-center">
+                                        <span class="mr-2">最高方块:</span>
+                                        <div class="tile-2048 text-xs px-2 py-0.5 rounded font-medium">2048</div>
+                                    </div>
+                                </div>
+                                <div class="font-bold text-gray-300">24,576</div>
+                            </div>
+
+                            <!-- 第三名 -->
+                            <div class="glass border border-amber-800/30 rounded-lg p-4 flex items-center mb-4">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-white font-bold mr-3 shadow-md">
+                                    3
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-bold text-gray-200">玩家三</div>
+                                    <div class="text-sm text-gray-400 flex items-center">
+                                        <span class="mr-2">最高方块:</span>
+                                        <div class="tile-2048 text-xs px-2 py-0.5 rounded font-medium">2048</div>
+                                    </div>
+                                </div>
+                                <div class="font-bold text-amber-500">20,480</div>
+                            </div>
+
+                            <!-- 其他玩家 -->
+                            <div class="glass border border-white/5 rounded-lg p-3 flex items-center mb-2 opacity-80">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gray-400 font-bold mr-3">
+                                    4
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-bold text-gray-300">玩家四</div>
+                                    <div class="text-xs text-gray-500">最高方块: 1024</div>
+                                </div>
+                                <div class="font-bold text-gray-300">12,800</div>
+                            </div>
+
+                            <div class="glass border border-white/5 rounded-lg p-3 flex items-center mb-2 opacity-80">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gray-400 font-bold mr-3">
+                                    5
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-bold text-gray-300">玩家五</div>
+                                    <div class="text-xs text-gray-500">最高方块: 1024</div>
+                                </div>
+                                <div class="font-bold text-gray-300">10,240</div>
+                            </div>
+
+                            <!-- 当前玩家 -->
+                            <div class="glass border border-indigo-500/30 rounded-lg p-3 bg-indigo-900/20">
+                                <div class="flex items-center">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold mr-3">
+                                        12
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="font-bold text-white">我</div>
+                                        <div class="text-xs text-gray-400">最高方块: 512</div>
+                                    </div>
+                                    <div class="font-bold text-indigo-300">6,400</div>
+                                </div>
+                                <div class="mt-2 flex justify-between items-center">
+                                    <div class="text-xs text-gray-400">距离前十名还差: 2,048分</div>
+                                    <button class="glass py-1 px-3 rounded text-xs text-indigo-300">
+                                        <i class="fas fa-arrow-up mr-1"></i>提升排名
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 排行榜成就 -->
+                        <div class="glass rounded-lg p-4 border border-white/10">
+                            <h4 class="text-indigo-300 font-medium mb-3 flex items-center">
+                                <i class="fas fa-trophy mr-2"></i> 成就解锁进度
+                            </h4>
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="glass p-2 rounded-lg flex flex-col items-center opacity-100">
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-sm mb-1">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <div class="text-xs text-gray-400">初学者</div>
+                                </div>
+                                <div class="glass p-2 rounded-lg flex flex-col items-center opacity-100">
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm mb-1">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <div class="text-xs text-gray-400">熟练者</div>
+                                </div>
+                                <div class="glass p-2 rounded-lg flex flex-col items-center opacity-60">
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white text-sm mb-1">
+                                        <i class="fas fa-lock"></i>
+                                    </div>
+                                    <div class="text-xs text-gray-400">专家</div>
+                                </div>
+                                <div class="glass p-2 rounded-lg flex flex-col items-center opacity-60">
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center text-white text-sm mb-1">
+                                        <i class="fas fa-lock"></i>
+                                    </div>
+                                    <div class="text-xs text-gray-400">大师</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 这里只是原型，实际游戏逻辑会在实现阶段编写
+        // 原型中的交互效果可以在实际开发时实现
+    </script>
+</body>
+
+</html>
