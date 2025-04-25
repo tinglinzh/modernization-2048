@@ -1,6 +1,6 @@
 import { BackgroundLines } from "@/components/ui/background-lines";
 import { motion } from 'motion/react';
-import { Link } from "react-router";
+import { Link, useLinkClickHandler } from "react-router";
 import { Icon } from "@iconify/react"
 
 export default function Home() {
@@ -27,6 +27,7 @@ export default function Home() {
             }, // 线性动画
         },
     };
+
     return (
         <BackgroundLines>
             <motion.div
@@ -37,12 +38,13 @@ export default function Home() {
             >
                 <motion.div
                     variants={itemVariants}
-                    className="relative">
+                    className="relative"
+                >
                     <div
-                        className="absolute -inset-1 rounded-lg blur bg-gradient-to-r from-indigo-500 via-secondary to-accent opacity-20">
+                        className="absolute -inset-1 rounded-lg blur bg-gradient-to-r from-indigo-500 opacity-20">
                     </div>
                     <h1
-                        className="relative text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-secondary to-accent mb-1">
+                        className="relative text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 mb-1">
                         2048</h1>
                 </motion.div>
                 <motion.p className="text-gray-600 mb-10 text-center" variants={itemVariants}>
@@ -54,6 +56,7 @@ export default function Home() {
                         backgroundColor: "#4c1d95",
                         transition: { duration: 0.2 }
                     }}
+                    onClick={useLinkClickHandler('/game')}
                     className="bg-[#5b21b6] mb-6 cursor-pointer transform shadow-md rounded-4xl px-8 py-3 font-bold text-white text-lg tracking-wider"
                 >
                     开始游戏
