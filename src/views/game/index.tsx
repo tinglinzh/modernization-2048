@@ -211,6 +211,7 @@ export default function Game() {
     };
 
     const handleTouchStart = (e: React.TouchEvent) => {
+        e.preventDefault(); // 阻止默认行为
         touchStartRef.current = {
             x: e.touches[0].clientX,
             y: e.touches[0].clientY
@@ -218,6 +219,7 @@ export default function Game() {
     };
 
     const handleTouchEnd = (e: React.TouchEvent) => {
+        e.preventDefault(); // 阻止默认行为
         if (gameOver) return;
 
         touchEndRef.current = {
@@ -237,6 +239,10 @@ export default function Game() {
                 moveTiles(dy > 0 ? 'down' : 'up');
             }
         }
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        e.preventDefault(); // 阻止默认行为
     };
 
     const handleDragStart = (e: React.MouseEvent) => {
@@ -331,9 +337,10 @@ export default function Game() {
             </div>
 
             <div
-                className='bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-inner relative'
+                className='bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-inner relative touch-none'
                 ref={boardRef}
                 onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
                 onMouseDown={handleDragStart}
                 onMouseUp={handleDragEnd}
