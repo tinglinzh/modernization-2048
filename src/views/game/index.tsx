@@ -297,10 +297,6 @@ export default function Game() {
         setGameOver(true);
     };
 
-    const getTransform = (row: number, col: number) => {
-        return `translate(${col * 100}%, ${row * 100}%)`;
-    };
-
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-4">
