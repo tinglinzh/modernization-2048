@@ -2,11 +2,12 @@ import { createBrowserRouter } from "react-router";
 import Home from "@/views/home/index";
 import Layout from '@/layouts/index';
 import Game from "@/views/game";
+import Future from "@/views/future";
 
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <Layout></Layout>,
+        element: <Layout />,
         children: [
             {
                 path: "/",
@@ -15,10 +16,13 @@ const router = createBrowserRouter([
             {
                 path: "/game",
                 element: <Game />,
-            }
+            },
+            {
+                path: "*", // ⭐️ 兜底匹配
+                element: <Future />,
+            },
         ],
     },
 ]);
-
 
 export default router;
