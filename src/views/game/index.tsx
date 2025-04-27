@@ -2,6 +2,7 @@ import { Icon } from '@iconify/react'
 import { Link } from 'react-router';
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import CountUp from '@/components/ui/count-up';
 
 // Define tile color mappings based on values
 const getTileStyles = (value: number) => {
@@ -42,6 +43,8 @@ export default function Game() {
     const touchEndRef = useRef({ x: 0, y: 0 });
     const dragStartRef = useRef({ x: 0, y: 0 });
     const dragEndRef = useRef({ x: 0, y: 0 });
+    const mergeAudioRef = useRef<HTMLAudioElement | null>(null);
+    const slideAudioRef = useRef<HTMLAudioElement | null>(null);
 
     // Initialize game
     useEffect(() => {
@@ -55,6 +58,15 @@ export default function Game() {
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
+    }, []);
+
+    // 初始化音频
+    useEffect(() => {
+        mergeAudioRef.current = new Audio('/src/assets/synthesis.mp3');
+        mergeAudioRef.current.volume = 0.5; // 可以调整音量
+        slideAudioRef.current = new Audio('/src/assets/slide.mp3');
+        slideAudioRef.current.volume = 0.5; // 可以调整音量
+
     }, []);
 
     useEffect(() => {
@@ -144,6 +156,7 @@ export default function Game() {
                     t.col === nextCol &&
                     !t.toRemove
                 );
+                slideAudioRef.current?.play()
 
                 if (!nextTile) {
                     // Move to empty space
@@ -157,6 +170,8 @@ export default function Game() {
                     tile.toRemove = true;
                     newScore += nextTile.value;
                     moved = true;
+
+                    mergeAudioRef.current?.play()
 
                     if (nextTile.value === 2048 && !gameWon) {
                         setGameWon(true);
@@ -313,7 +328,17 @@ export default function Game() {
                 <div className="flex gap-2">
                     <div className="bg-white shadow p-2 rounded-lg flex flex-col items-center w-20 border border-gray-100">
                         <span className="text-xs text-gray-500">分数</span>
-                        <span className="font-bold text-indigo-600">{score}</span>
+                        <span className="font-bold text-indigo-600">
+                            <CountUp
+                                from={0}
+                                to={score}
+                                separator=","
+                                direction="up"
+                                duration={1}
+                                className="count-up-text"
+                            />
+                        </span>
+
                     </div>
                     <div className="bg-white shadow p-2 rounded-lg flex flex-col items-center w-20 border border-gray-100">
                         <span className="text-xs text-gray-500">最佳</span>
@@ -349,7 +374,7 @@ export default function Game() {
                 <div className='grid grid-cols-4 gap-3 select-none cursor-grab relative'>
                     {Array(16).fill(null).map((_, i) => (
                         <div key={`empty-${i}`} className="bg-gray-200/90 border border-gray-200/50 h-16 rounded-md flex items-center justify-center">
-                            <div className="w-3 h-3 rounded-full bg-gray-200"></div>
+                            <div className="w-3 h-3 rounded-full bg-gray-300"></div>
                         </div>
                     ))}
                 </div>
