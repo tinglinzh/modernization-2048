@@ -62,9 +62,9 @@ export default function Game() {
 
     // 初始化音频
     useEffect(() => {
-        mergeAudioRef.current = new Audio('/src/assets/synthesis.mp3');
+        mergeAudioRef.current = new Audio('/slide.mp3');
         mergeAudioRef.current.volume = 0.5; // 可以调整音量
-        slideAudioRef.current = new Audio('/src/assets/slide.mp3');
+        slideAudioRef.current = new Audio('/synthesis.mp3');
         slideAudioRef.current.volume = 0.5; // 可以调整音量
 
     }, []);
