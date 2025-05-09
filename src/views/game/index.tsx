@@ -46,27 +46,23 @@ export default function Game() {
     const mergeAudioRef = useRef<HTMLAudioElement | null>(null);
     const slideAudioRef = useRef<HTMLAudioElement | null>(null);
 
-    // Initialize game
     useEffect(() => {
         initGame();
         const savedBestScore = localStorage.getItem('bestScore');
         if (savedBestScore) {
             setBestScore(parseInt(savedBestScore));
         }
-
         window.addEventListener('keydown', handleKeyDown);
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, []);
 
-    // 初始化音频
     useEffect(() => {
-        mergeAudioRef.current = new Audio('/slide.mp3');
-        mergeAudioRef.current.volume = 0.5; // 可以调整音量
-        slideAudioRef.current = new Audio('/synthesis.mp3');
-        slideAudioRef.current.volume = 0.5; // 可以调整音量
-
+        mergeAudioRef.current = new Audio('/synthesis.mp3');
+        mergeAudioRef.current.volume = 0.5;
+        slideAudioRef.current = new Audio('/slide.mp3');
+        slideAudioRef.current.volume = 0.5;
     }, []);
 
     useEffect(() => {
@@ -86,7 +82,6 @@ export default function Game() {
 
     const initGame = () => {
         const newTiles: TileType[] = [];
-        // Add two initial tiles
         for (let i = 0; i < 2; i++) {
             const position = getRandomEmptyPosition(newTiles);
             if (position) {
@@ -102,7 +97,6 @@ export default function Game() {
     const getRandomEmptyPosition = (currentTiles: TileType[]) => {
         const occupied = new Set(currentTiles.map(tile => `${tile.row}-${tile.col}`));
         const empty: { row: number; col: number }[] = [];
-
         for (let row = 0; row < 4; row++) {
             for (let col = 0; col < 4; col++) {
                 if (!occupied.has(`${row}-${col}`)) {
@@ -110,7 +104,6 @@ export default function Game() {
                 }
             }
         }
-
         if (empty.length === 0) return null;
         return empty[Math.floor(Math.random() * empty.length)];
     };
@@ -119,8 +112,6 @@ export default function Game() {
         const newTiles = [...tiles];
         let moved = false;
         let newScore = score;
-
-        // Sort tiles based on direction to process them in the correct order
         const sortedTiles = [...newTiles].sort((a, b) => {
             if (direction === 'left') return a.col - b.col;
             if (direction === 'right') return b.col - a.col;
@@ -128,51 +119,37 @@ export default function Game() {
             return b.row - a.row;
         });
 
-        // Reset states
         sortedTiles.forEach(tile => {
             tile.isMerging = false;
             tile.toRemove = false;
         });
 
-        // Process each tile
         sortedTiles.forEach(tile => {
-            if (tile.toRemove) return; // Skip tiles that are already merged
-
+            if (tile.toRemove) return;
             let { row, col } = tile;
             let newRow = row;
             let newCol = col;
 
-            // Calculate new position
             while (true) {
                 let nextRow = direction === 'up' ? newRow - 1 : direction === 'down' ? newRow + 1 : newRow;
                 let nextCol = direction === 'left' ? newCol - 1 : direction === 'right' ? newCol + 1 : newCol;
 
-                // Check if next position is within bounds
                 if (nextRow < 0 || nextRow >= 4 || nextCol < 0 || nextCol >= 4) break;
 
-                // Find tile at next position
-                const nextTile = sortedTiles.find(t =>
-                    t.row === nextRow &&
-                    t.col === nextCol &&
-                    !t.toRemove
-                );
-                slideAudioRef.current?.play()
+                const nextTile = sortedTiles.find(t => t.row === nextRow && t.col === nextCol && !t.toRemove);
+                slideAudioRef.current?.play();
 
                 if (!nextTile) {
-                    // Move to empty space
                     newRow = nextRow;
                     newCol = nextCol;
                     moved = true;
                 } else if (nextTile.value === tile.value && !nextTile.isMerging) {
-                    // Merge tiles
                     nextTile.value *= 2;
                     nextTile.isMerging = true;
                     tile.toRemove = true;
                     newScore += nextTile.value;
                     moved = true;
-
-                    mergeAudioRef.current?.play()
-
+                    mergeAudioRef.current?.play();
                     if (nextTile.value === 2048 && !gameWon) {
                         setGameWon(true);
                     }
@@ -188,11 +165,8 @@ export default function Game() {
             }
         });
 
-        // Remove merged tiles and update state
         if (moved) {
             const remainingTiles = sortedTiles.filter(tile => !tile.toRemove);
-
-            // Add new random tile
             const newPosition = getRandomEmptyPosition(remainingTiles);
             if (newPosition) {
                 remainingTiles.push(createTile(newPosition.row, newPosition.col, Math.random() < 0.9 ? 2 : 4));
@@ -208,25 +182,16 @@ export default function Game() {
 
     const handleKeyDown = (e: KeyboardEvent) => {
         if (gameOver) return;
-
         switch (e.key) {
-            case 'ArrowUp':
-                moveTiles('up');
-                break;
-            case 'ArrowDown':
-                moveTiles('down');
-                break;
-            case 'ArrowLeft':
-                moveTiles('left');
-                break;
-            case 'ArrowRight':
-                moveTiles('right');
-                break;
+            case 'ArrowUp': moveTiles('up'); break;
+            case 'ArrowDown': moveTiles('down'); break;
+            case 'ArrowLeft': moveTiles('left'); break;
+            case 'ArrowRight': moveTiles('right'); break;
         }
     };
 
     const handleTouchStart = (e: React.TouchEvent) => {
-        e.preventDefault(); // 阻止默认行为
+        e.preventDefault();
         touchStartRef.current = {
             x: e.touches[0].clientX,
             y: e.touches[0].clientY
@@ -234,21 +199,16 @@ export default function Game() {
     };
 
     const handleTouchEnd = (e: React.TouchEvent) => {
-        e.preventDefault(); // 阻止默认行为
+        e.preventDefault();
         if (gameOver) return;
-
         touchEndRef.current = {
             x: e.changedTouches[0].clientX,
             y: e.changedTouches[0].clientY
         };
-
         const dx = touchEndRef.current.x - touchStartRef.current.x;
         const dy = touchEndRef.current.y - touchStartRef.current.y;
-        const absDx = Math.abs(dx);
-        const absDy = Math.abs(dy);
-
-        if (Math.max(absDx, absDy) > 30) {
-            if (absDx > absDy) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) > 30) {
+            if (Math.abs(dx) > Math.abs(dy)) {
                 moveTiles(dx > 0 ? 'right' : 'left');
             } else {
                 moveTiles(dy > 0 ? 'down' : 'up');
@@ -257,31 +217,20 @@ export default function Game() {
     };
 
     const handleTouchMove = (e: React.TouchEvent) => {
-        e.preventDefault(); // 阻止默认行为
+        e.preventDefault();
     };
 
     const handleDragStart = (e: React.MouseEvent) => {
-        dragStartRef.current = {
-            x: e.clientX,
-            y: e.clientY
-        };
+        dragStartRef.current = { x: e.clientX, y: e.clientY };
     };
 
     const handleDragEnd = (e: React.MouseEvent) => {
         if (gameOver) return;
-
-        dragEndRef.current = {
-            x: e.clientX,
-            y: e.clientY
-        };
-
+        dragEndRef.current = { x: e.clientX, y: e.clientY };
         const dx = dragEndRef.current.x - dragStartRef.current.x;
         const dy = dragEndRef.current.y - dragStartRef.current.y;
-        const absDx = Math.abs(dx);
-        const absDy = Math.abs(dy);
-
-        if (Math.max(absDx, absDy) > 30) {
-            if (absDx > absDy) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) > 30) {
+            if (Math.abs(dx) > Math.abs(dy)) {
                 moveTiles(dx > 0 ? 'right' : 'left');
             } else {
                 moveTiles(dy > 0 ? 'down' : 'up');
@@ -289,28 +238,21 @@ export default function Game() {
         }
     };
 
-    const checkGameStatus = (currentTiles: TileType[]) => {
-        const occupied = new Set(currentTiles.map(tile => `${tile.row}-${tile.col}`));
-
-        // Check if board is full
+    const checkGameStatus = (tiles: TileType[]) => {
+        const occupied = new Set(tiles.map(tile => `${tile.row}-${tile.col}`));
         if (occupied.size < 16) return;
 
-        // Check for possible merges
-        for (const tile of currentTiles) {
-            const { row, col, value } = tile;
-            const neighbors = [
-                { row: row - 1, col },
-                { row: row + 1, col },
-                { row, col: col - 1 },
-                { row, col: col + 1 }
+        for (const tile of tiles) {
+            const directions = [
+                { row: tile.row - 1, col: tile.col },
+                { row: tile.row + 1, col: tile.col },
+                { row: tile.row, col: tile.col - 1 },
+                { row: tile.row, col: tile.col + 1 }
             ];
-
-            for (const neighbor of neighbors) {
-                if (neighbor.row >= 0 && neighbor.row < 4 && neighbor.col >= 0 && neighbor.col < 4) {
-                    const neighborTile = currentTiles.find(t => t.row === neighbor.row && t.col === neighbor.col);
-                    if (neighborTile && neighborTile.value === value) {
-                        return;
-                    }
+            for (const d of directions) {
+                if (d.row >= 0 && d.row < 4 && d.col >= 0 && d.col < 4) {
+                    const neighbor = tiles.find(t => t.row === d.row && t.col === d.col);
+                    if (neighbor && neighbor.value === tile.value) return;
                 }
             }
         }

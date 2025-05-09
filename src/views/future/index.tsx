@@ -24,7 +24,7 @@ export default function Future() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 1.2, ease: "easeOut" }}
-                className="text-4xl font-extrabold flex item-center mb-4 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent z-10 mb-6"
+                className="text-4xl font-extrabold flex item-center bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent z-10 mb-6"
             >
                 <Icon icon='fluent-emoji:face-with-monocle' className="mr-1" />
                 <span>
