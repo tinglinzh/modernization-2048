@@ -59,9 +59,9 @@ export default function Game() {
     }, []);
 
     useEffect(() => {
-        mergeAudioRef.current = new Audio('/synthesis.mp3');
+        mergeAudioRef.current = new Audio('/slide.mp3');
         mergeAudioRef.current.volume = 0.5;
-        slideAudioRef.current = new Audio('/slide.mp3');
+        slideAudioRef.current = new Audio('/synthesis.mp3');
         slideAudioRef.current.volume = 0.5;
     }, []);
 
